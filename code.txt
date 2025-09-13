@@ -134,7 +134,7 @@ FLUSH PRIVILEGES;
 
 mysql -u dev_team -p
 
-2) 개발팀 테이블 
+2) 팀별 테이블 생성 
 USE woong_company_db;
 
 CREATE TABLE dev_team_employees (
@@ -148,16 +148,6 @@ CREATE TABLE dev_team_employees (
     is_active BOOLEAN DEFAULT TRUE
 );
 
-INSERT INTO dev_team_employees (name, age, skill_set, current_project, salary) VALUES
-('김철수', 28, 'Java, Python', '사내 웹 서비스 개발', 550),
-('박영희', 32, 'JavaScript, React', '모바일 앱 개발', 620),
-('이민호', 35, 'Python, AWS', '클라우드 시스템 관리', 750);
-
-SELECT * FROM dev_team_employees;
-
-3)마케팅팀 테이블 
-
-USE woong_company_db;
 
 CREATE TABLE marketing_team_campaigns (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -169,17 +159,6 @@ CREATE TABLE marketing_team_campaigns (
     is_active BOOLEAN DEFAULT TRUE
 );
 
-INSERT INTO marketing_team_campaigns (marketer_name, email, campaign_name, budget, performance_score) VALUES
-('민수', 'minsu@company.com', '신제품 런칭', 5000, 92.5),
-('지우', 'jiwoo@company.com', 'SNS 광고', 3000, 88.0),
-('최유리', 'yuri@company.com', '브랜드 캠페인', 4500, 95.0);
-
-SELECT * FROM marketing_team_campaigns;
-
-4)기획팀 테이블 
-
-USE woong_company_db;
-
 CREATE TABLE planning_team_projects (
     project_id INT PRIMARY KEY AUTO_INCREMENT,
     project_name VARCHAR(100) NOT NULL,
@@ -189,15 +168,6 @@ CREATE TABLE planning_team_projects (
     budget DECIMAL(15,2) COMMENT '단위: 만 원',
     completed BOOLEAN DEFAULT FALSE
 );
-
-INSERT INTO planning_team_projects (project_name, project_owner, start_date, end_date, budget) VALUES
-('사내 홈페이지 리뉴얼', '이민호', '2025-09-01', '2025-12-15', 450000),
-('신제품 런칭 캠페인', '최유리', '2025-10-01', '2026-01-20', 350000),
-('사내 ERP 시스템 개선', '박영희', '2025-11-01', '2026-03-31', 600000);
-
-SELECT * FROM planning_team_projects;
-
-USE woong_company_db;
 
 CREATE TABLE company_announcements (
     announcement_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -209,17 +179,62 @@ CREATE TABLE company_announcements (
 INSERT INTO company_announcements (title, content) VALUES
 ('연말 정기휴가 안내', '12월 24일부터 12월 31일까지 정기휴가입니다.'),
 ('사내 시스템 점검', '10월 20일 22:00~23:59 사내 시스템 점검 예정.');
-
+-- 개발팀
 GRANT SELECT, INSERT, UPDATE, DELETE 
-ON woong_company_db.dev_team_employees TO 'dev_team'@'localhost';
+ON company_db.dev_team_employees TO 'dev_team'@'localhost';
+-- 마케팅팀
 GRANT SELECT, INSERT, UPDATE, DELETE 
-ON woong_company_db.marketing_team_campaigns TO 'marketing_team'@'localhost';
+ON company_db.marketing_team_campaigns TO 'marketing_team'@'localhost';
+-- 기획팀
 GRANT SELECT, INSERT, UPDATE, DELETE 
-ON woong_company_db.planning_team_projects TO 'planning_team'@'localhost';
-
--- 팀 계정은 SELECT만 가능
-GRANT SELECT ON woong_company_db.company_announcements TO 'dev_team'@'localhost';
-GRANT SELECT ON woong_company_db.company_announcements TO 'marketing_team'@'localhost';
-GRANT SELECT ON woong_company_db.company_announcements TO 'planning_team'@'localhost';
-
+ON company_db.planning_team_projects TO 'planning_team'@'localhost';
+-- 공용 테이블은 모든 팀이 읽기 가능
+GRANT SELECT ON company_db.company_announcements TO 'dev_team'@'localhost';
+GRANT SELECT ON company_db.company_announcements TO 'marketing_team'@'localhost';
+GRANT SELECT ON company_db.company_announcements TO 'planning_team'@'localhost';
 FLUSH PRIVILEGES;
+
+팀별 사용자: 자기 팀 데이터 삽입 및 관리
+
+mysql -u dev_team -p
+
+INSERT INTO dev_team_employees (name, age, skill_set, current_project, salary) VALUES
+('김철수', 28, 'Java, Python', '사내 웹 서비스 개발', 550),
+('박영희', 32, 'JavaScript, React', '모바일 앱 개발', 620);
+
+UPDATE dev_team_employees
+SET current_project = '모바일 앱 개선'
+WHERE name = '박영희';
+
+SELECT * FROM dev_team_employees;
+
+##마케팅팀 로그인
+mysql -u marketing_team -p
+
+USE company_db;
+
+INSERT INTO marketing_team_campaigns (marketer_name, email, campaign_name, budget, performance_score) VALUES
+('민수', 'minsu@company.com', '신제품 런칭', 5000, 92.5),
+('지우', 'jiwoo@company.com', 'SNS 광고', 3000, 88.0);
+
+UPDATE marketing_team_campaigns
+SET budget = 5500
+WHERE campaign_name = '신제품 런칭';
+
+SELECT * FROM marketing_team_campaigns;
+
+##기획팀 로그인 
+mysql -u planning_team -p
+
+USE company_db;
+
+INSERT INTO planning_team_projects (project_name, project_owner, start_date, end_date, budget) VALUES
+('사내 홈페이지 리뉴얼', '이민호', '2025-09-01', '2025-12-15', 450000),
+('ERP 시스템 개선', '박영희', '2025-11-01', '2026-03-31', 600000);
+
+UPDATE planning_team_projects
+SET completed = TRUE
+WHERE project_name = '사내 홈페이지 리뉴얼';
+
+SELECT * FROM planning_team_projects;
+
