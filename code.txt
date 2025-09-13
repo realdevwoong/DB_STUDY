@@ -286,3 +286,36 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+숙제 
+
+#혹시나 흥미를 잃을 수 있을 까봐 간단한 예제를 만들었어요.
+
+#root계정 접속 
+sudo mysql -u root -p
+
+
+-- 데이터베이스 생성
+CREATE DATABASE testdb;
+SHOW DATABASES;
+
+-- 사용자 생성
+CREATE USER 'testuser'@'localhost' IDENTIFIED BY 'password123';
+SELECT user, host FROM mysql.user WHERE user='testuser';
+
+-- 권한 부여
+GRANT ALL PRIVILEGES ON testdb.* TO 'testuser'@'localhost'; 
+*.* 
+SHOW GRANTS FOR 'testuser'@'localhost';
+
+
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    age INT
+);
+
+INSERT INTO users (name, age) VALUES ('Alice', 25);
+INSERT INTO users (name, age) VALUES ('Bob', 30);
+
+SELECT * FROM users;
