@@ -1,2 +1,3 @@
 sudo apt update
 sudo apt install mysql-server -y 
+pip install mysql-connector-python
