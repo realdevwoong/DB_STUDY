@@ -272,3 +272,17 @@ SELECT * FROM company_announcements;
 SELECT * FROM dev_team_employees;
 SELECT * FROM marketing_team_campaigns;
 SELECT * FROM planning_team_projects;
+
+
+CREATE DATABASE board_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- 2) DB 사용
+USE board_db;
+
+-- 3) 게시판 테이블 생성
+CREATE TABLE posts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
