@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+#업데이트
 import os
 from datetime import datetime
 import mysql.connector
