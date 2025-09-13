@@ -1,0 +1,225 @@
+#설치, root계정설정, user를 생성, db생성, CRUD, python crud에 붙이기 
+
+mysql --version 
+#MySQL 클라이언트 프로그램의 버전
+#클라이언트 실행 파일(/usr/bin/mysql)
+
+sudo apt remove --purge mysql-server mysql-client mysql-common -y
+-- purge는 설정파일까지 제거 
+# mysql 서버 -> DB 엔진(실제서비스), mysql-client ->MySQL 접속도구, mysql-common 공통 설정/구조 패키지  
+
+sudo rm -rf /etc/mysql /var/lib/mysql
+
+#MySQL 설정과 데이터 디렉토리 삭제
+#/etc -> 시스템 전체의 설정 파일(configuration files)를 저장하는 곳 
+#/var -> 자주 바뀌는 데이터 -> 로그, 캐시, 데이터 
+
+sudo rm -rf /var/log/mysql*
+#MySQL 관련 로그 파일 삭제
+
+sudo rm -rf /usr/bin/mysql 
+#클라이언트 실행 파일 삭제 
+
+sudo apt autoremove -y
+#더 이상 필요 없는 의존성 패키지를 자동 제거
+
+sudo apt autoclean
+#다운로드해 둔 .deb 캐시 파일을 청소
+
+
+
+dpkg -l | grep mysql 
+#ebian Package Manage의 약자 
+#Debian 계열의 리눅스(Ubuntu) 에서 .deb 패키지를 설치/제거/조회 할 수 있는 저수준의 패키지 관리 도구 
+#apt는 의존성 관리를 포함한 고수준의 도구
+#apt는 내부적으로 dpkg를 사용
+
+which mysql
+/usr/bin/mysql 
+
+
+apt update 
+apt-get update 사용 (전통적, 호환성 높음)
+
+# 1. 패키지 목록 업데이트
+sudo apt update
+
+# sudo apt upgrade 
+패키지를 설치/업그레이드 
+
+# 2. MySQL 서버 설치
+sudo apt install mysql-server -y
+
+# 3. MySQL 서비스 시작
+sudo systemctl start mysql
+
+# 4. 부팅 시 자동 실행 설정
+sudo systemctl enable mysql
+
+# 5. MySQL 서비스 상태 확인
+systemctl status mysql
+
+#sudo mysql 
+
+root계정 
+#모든 권한 소유 
+-> 데이터 베이스 생성/삭제
+-> 테이블 생성/삭제 
+-> 사용자 계정 생성/삭제 및 권한 부여 
+-> 서버 설정 변경 
+
+SELECT user,authentication_string,plugin,host FROM mysql.user;
+
+root -> auth_socket 
+비밀 번호 없이 로그인, auth_socket이라는 프로그램이 시스템 계정 인증을 처리하기 때문 
+
+
+# 7. MySQL 접속 (root 계정)
+sudo mysql -u root -p
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '새비밀번호';
+FLUSH PRIVILEGES;
+#MySQL에서 권한 관련 테이블(mysql.user, mysql.db 등)에 변경 사항이 있을 때
+#MySQL 서버에게 변경 사항을 적용하라고 명령하는 것
+EXIT;
+
+# 보안 설정 (root 비밀번호 설정 등)
+sudo mysql_secure_installation
+
+#터미널 지우기 
+system clear 
+
+
+-- Root 접속
+sudo mysql x
+
+-- 데이터베이스 생성
+CREATE DATABASE testdb;
+SHOW DATABASES;
+
+-- 사용자 생성
+CREATE USER 'testuser'@'localhost' IDENTIFIED BY 'password123';
+SELECT user, host FROM mysql.user WHERE user='testuser';
+
+-- 권한 부여
+GRANT ALL PRIVILEGES ON testdb.* TO 'testuser'@'localhost'; 
+*.* 
+SHOW GRANTS FOR 'testuser'@'localhost';
+
+-- 권한 적용
+FLUSH PRIVILEGES;
+
+-- 테스트
+EXIT;
+
+
+#시나리오
+woong_company가 있는데, 여기에는 마케팅 부서, 기획 부서, 개발 부서가 있다. 
+전체 공지는 모든 부서가 볼 수 있게 하고, 개발팀은 개발 정보만, 마케팅 팀은 마케팅 팀 정보만, 기획 부서는 기획 정보만 보게한다.
+공지사항 수정은 관리자만 할 수 있게 해라 
+개발팀: 직원 이름, 기술 스택, 현재 프로젝트, 입사일, 근무 상태 
+마케팅 팀: 담당자 이름, 이메일, 캠페인, 광고 예산, 성과 
+
+
+1) Root 계정, DB 및 팀 계정 생성
+CREATE DATABASE woong_company_db;
+
+CREATE USER 'dev_team'@'localhost' IDENTIFIED BY 'devpass';
+CREATE USER 'marketing_team'@'localhost' IDENTIFIED BY 'markpass';
+CREATE USER 'planning_team'@'localhost' IDENTIFIED BY 'planpass';
+
+GRANT ALL PRIVILEGES ON woong_company_db.* TO 'root'@'localhost';
+
+FLUSH PRIVILEGES;
+
+mysql -u dev_team -p
+
+2) 개발팀 테이블 
+USE woong_company_db;
+
+CREATE TABLE dev_team_employees (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    age INT CHECK(age>=20),
+    skill_set VARCHAR(100),
+    current_project VARCHAR(100),
+    join_date DATE DEFAULT CURRENT_DATE,
+    salary DECIMAL(10,2) COMMENT '단위: 만 원', -- 단위 명시
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO dev_team_employees (name, age, skill_set, current_project, salary) VALUES
+('김철수', 28, 'Java, Python', '사내 웹 서비스 개발', 550),
+('박영희', 32, 'JavaScript, React', '모바일 앱 개발', 620),
+('이민호', 35, 'Python, AWS', '클라우드 시스템 관리', 750);
+
+SELECT * FROM dev_team_employees;
+
+3)마케팅팀 테이블 
+
+USE woong_company_db;
+
+CREATE TABLE marketing_team_campaigns (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    marketer_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    campaign_name VARCHAR(100),
+    budget DECIMAL(12,2) COMMENT '단위: 만 원',
+    performance_score DECIMAL(5,2),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+INSERT INTO marketing_team_campaigns (marketer_name, email, campaign_name, budget, performance_score) VALUES
+('민수', 'minsu@company.com', '신제품 런칭', 5000, 92.5),
+('지우', 'jiwoo@company.com', 'SNS 광고', 3000, 88.0),
+('최유리', 'yuri@company.com', '브랜드 캠페인', 4500, 95.0);
+
+SELECT * FROM marketing_team_campaigns;
+
+4)기획팀 테이블 
+
+USE woong_company_db;
+
+CREATE TABLE planning_team_projects (
+    project_id INT PRIMARY KEY AUTO_INCREMENT,
+    project_name VARCHAR(100) NOT NULL,
+    project_owner VARCHAR(50),
+    start_date DATE,
+    end_date DATE,
+    budget DECIMAL(15,2) COMMENT '단위: 만 원',
+    completed BOOLEAN DEFAULT FALSE
+);
+
+INSERT INTO planning_team_projects (project_name, project_owner, start_date, end_date, budget) VALUES
+('사내 홈페이지 리뉴얼', '이민호', '2025-09-01', '2025-12-15', 450000),
+('신제품 런칭 캠페인', '최유리', '2025-10-01', '2026-01-20', 350000),
+('사내 ERP 시스템 개선', '박영희', '2025-11-01', '2026-03-31', 600000);
+
+SELECT * FROM planning_team_projects;
+
+USE woong_company_db;
+
+CREATE TABLE company_announcements (
+    announcement_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO company_announcements (title, content) VALUES
+('연말 정기휴가 안내', '12월 24일부터 12월 31일까지 정기휴가입니다.'),
+('사내 시스템 점검', '10월 20일 22:00~23:59 사내 시스템 점검 예정.');
+
+GRANT SELECT, INSERT, UPDATE, DELETE 
+ON woong_company_db.dev_team_employees TO 'dev_team'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE 
+ON woong_company_db.marketing_team_campaigns TO 'marketing_team'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE 
+ON woong_company_db.planning_team_projects TO 'planning_team'@'localhost';
+
+-- 팀 계정은 SELECT만 가능
+GRANT SELECT ON woong_company_db.company_announcements TO 'dev_team'@'localhost';
+GRANT SELECT ON woong_company_db.company_announcements TO 'marketing_team'@'localhost';
+GRANT SELECT ON woong_company_db.company_announcements TO 'planning_team'@'localhost';
+
+FLUSH PRIVILEGES;
