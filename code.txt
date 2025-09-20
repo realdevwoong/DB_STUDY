@@ -29,7 +29,7 @@ sudo apt autoclean
 
 
 dpkg -l | grep mysql 
-#ebian Package Manage의 약자 
+#debian Package Manage의 약자 
 #Debian 계열의 리눅스(Ubuntu) 에서 .deb 패키지를 설치/제거/조회 할 수 있는 저수준의 패키지 관리 도구 
 #apt는 의존성 관리를 포함한 고수준의 도구
 #apt는 내부적으로 dpkg를 사용
@@ -145,11 +145,10 @@ CREATE TABLE dev_team_employees (
     age INT CHECK(age>=20),
     skill_set VARCHAR(100),
     current_project VARCHAR(100),
-    join_date DATE DEFAULT CURRENT_DATE,
-    salary DECIMAL(10,2) COMMENT '단위: 만 원', -- 단위 명시
+    join_date DATE DEFAULT (CURRENT_DATE),
+    salary DECIMAL(10,2) COMMENT '단위: 만 원',
     is_active BOOLEAN DEFAULT TRUE
 );
-
 
 #마케팅팀 테이블 생성
 CREATE TABLE marketing_team_campaigns (
@@ -214,7 +213,7 @@ FLUSH PRIVILEGES;
 
 ##개발팀 로그인 
 mysql -u dev_team -p
-USE 
+USE woong_company_db;
 INSERT INTO dev_team_employees (name, age, skill_set, current_project, salary) VALUES
 ('김철수', 28, 'Java, Python', '사내 웹 서비스 개발', 550),
 ('박영희', 32, 'JavaScript, React', '모바일 앱 개발', 620);
